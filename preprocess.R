@@ -73,7 +73,19 @@ df <- df %>% mutate(
   doctor_recc_seasonal=if_else(is.na(doctor_recc_seasonal), 0, doctor_recc_seasonal)
 )
 
+df %>% gg_miss_upset(.)
+
 df %>% missmap(.)
+
+indexes <- df %>% rownames_to_column() %>% filter(
+  is.na(employment_status) & is.na(employment_industry) & is.na(employment_occupation) & is.na(rent_or_own) & is.na(income_poverty)
+) %>% select(rowname) %>% unlist(.) %>% as.numeric()
+
+df[indexes, "employment_status"] <- "Unemployed"
+df[indexes, "employment_industry"] <- "unemployed"
+df[indexes, "employment_occupation"] <- "unemployed"
+df[indexes, "rent_or_own"] <- "none"
+df[indexes, "income_poverty"] <- "Below Poverty"
 
 # En el caso de children under 6 months, se entiende que si hay valor perdido, se trata 0
 # Puede ser que el encuestador haya visto que sea una persona muy joven y por lo tanto, no tenga hijos
