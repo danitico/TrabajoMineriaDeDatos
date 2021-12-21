@@ -34,32 +34,18 @@ model.Ripper = JRip(target~., df_filter, subset=train,  control = Weka_control(F
 summary(model.Ripper)
 
 
-model.Ripper.pred = predict(model.Ripper, newdata = test)
+model.Ripper.pred = predict(model.Ripper, newdata = test, type = 'probability')
 
-model.Ripper.pred.char=(levels(model.Ripper.pred))[model.Ripper.pred]
+prediccion=as.data.frame(model.Ripper.pred)
+prediccion=prediccion %>% mutate(id=as.numeric(rownames(prediccion))) %>% relocate(id)
 
-h1n1_prediction=vector(mode="numeric", length = length(model.Ripper.pred.char))
-seasonal_prediction=vector(mode="numeric", length = length(model.Ripper.pred.char))
+prediccion_split=split_target(prediccion)
 
-for (i in 1:length(model.Ripper.pred.char)) {
-  if(model.Ripper.pred.char[[i]]=="10"){
-    h1n1_prediction[i]=1
-  }
-  if(model.Ripper.pred.char[[i]]=="01"){
-    seasonal_prediction[i]=1
-  }
-  if(model.Ripper.pred.char[[i]]=="11"){
-    h1n1_prediction[i]=1
-    seasonal_prediction[i]=1
-  }
-}
-
-
-ROC_h1n1=roc(as.factor(h1n1_prediction), as.factor(test_df[,36]))
+ROC_h1n1=roc(as.factor(prediccion_split[,2]), as.factor(test_df[,36]))
 acierto_h1n1=auc(ROC_h1n1)
 acierto_h1n1
 
-ROC_seasonal=roc(as.factor(seasonal_prediction), as.factor(test_df[,37]))
+ROC_seasonal=roc(as.factor(prediccion_split[,3]), as.factor(test_df[,37]))
 acierto_seasonal=auc(ROC_seasonal)
 acierto_seasonal
 
