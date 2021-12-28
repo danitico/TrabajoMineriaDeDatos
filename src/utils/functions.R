@@ -6,16 +6,14 @@ library(ggplot2)
 
 ### DE MULTIETIQUETA A MULTICLASE
 
-collapse_labels <- function(dataframe, col_index_1, col_index_2) {
-  
-  new_dataframe <- dataframe[,-c(col_index_1, col_index_2)]
-  
-  new_dataframe$target <- paste(
-    dataframe[[colnames(dataframe)[col_index_1]]],
-    dataframe[[colnames(dataframe)[col_index_2]]],
+collapse_labels = function(dataframe, col_index_1, col_index_2) {
+  dataframe$target <- paste(
+    dataframe[[col_index_1]],
+    dataframe[[col_index_2]],
     sep=""
   ) %>% as.factor()
-  return(new_dataframe)
+
+  dataframe
 }
 
 
@@ -91,7 +89,6 @@ add_real_respondent_id <- function(dataframe) {
 ### LECTURA DEL DATASET CON TODAS LAS COLUMNAS COMO FACTORES
 
 read_dataset <- function(file) {
-  
   read_csv(file) %>%
     mutate(
       across(
@@ -191,3 +188,48 @@ score_progression_plot <- function(scores) {
     xlab("") +
     ylab("AUC")
 }
+
+### KFOLDS
+
+get_kfolds <- function(data, k) {
+  set.seed(42)
+  
+  fold_size <- dim(data)[1] %/% k
+  remainder <- dim(data)[1] %% k
+  
+  data <- data[sample(dim(data)[1]), ]
+  
+  folds <- list()
+  counter <- 1
+  
+  for (i in 1:k) {
+    if (i == 1 & remainder > 0) {
+      folds[[i]] <- as.data.frame(data[counter:(fold_size + remainder),])
+      counter <- fold_size + remainder + 1
+    } else {
+      folds[[i]] <- as.data.frame(data[counter:(counter + fold_size - 1),])
+      counter <- counter + fold_size
+    }
+  }
+  
+  return(folds)
+}
+
+
+## Cross validation
+
+cross_validation <- function(kfolds, train_function, predict_function) {
+  sapply(
+    1:length(kfolds),
+    function(i) {
+      train_data <- bind_rows(kfolds[-c(i)])
+      test_data <- kfolds[[i]]
+      
+      models <- train_function(train_data)
+      
+      predict_function(models, test_data)
+    }
+  )
+}
+
+
