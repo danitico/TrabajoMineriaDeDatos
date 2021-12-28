@@ -2,14 +2,33 @@ source("src/utils/functions.R")
 source("preprocess.R")
 
 library(AUC)
+#options(java.home="C:\\Program Files (x86)\\Java\\jre1.8.0_291")
 library(RWeka)
 library(mice)
 
 library(FSelectorRcpp)
 
-imp=mice(df, maxit=3, meth='pmm', seed=1)
+library(tidyverse)
+library(Amelia)
+library(naniar)
 
-df=complete(imp)
+
+#features <- read_csv("src/training_set_featuress.csv")
+#labels <- read_csv("src/training_set_labels.csv")
+
+# Merging dataframes
+#df <- merge(
+#  features,
+#  labels,
+#  by = "respondent_id"
+#)
+
+#df =df %>% select(-respondent_id)
+
+
+#imp=mice(df, maxit=3, meth='pmm', seed=1)
+
+#df=complete(imp)
 
 
 
@@ -29,7 +48,7 @@ test_df=df[-train,]
 
 
 # Aplico el algoritmo Ripper
-model.Ripper = JRip(target~., df_filter, subset=train,  control = Weka_control(F=10, O=5))
+model.Ripper = JRip(target~., df_filter, subset=train,  control = Weka_control())
 
 summary(model.Ripper)
 
@@ -51,7 +70,22 @@ acierto_seasonal
 
 mean(c(acierto_h1n1, acierto_seasonal))
 
-model.Ripper
+source("preprocess_test.R")
+
+features_test=features_test %>% mutate_if(is.character, as.factor)
+id_test=features_test %>%select(respondent_id)
+id_test=id_test[[1]]
+features_test=features_test %>%select(-respondent_id)
+
+model.Ripper.pred.test = predict(model.Ripper, newdata = features_test, type = 'probability')
+
+prediccion_test=as.data.frame(model.Ripper.pred.test)
+prediccion_test=prediccion_test %>% mutate(id=id_test) %>% relocate(id)
+
+prediccion_split_test=split_target(prediccion_test)
+prediccion_split_test=as.data.frame(prediccion_split_test)
+
+write_csv(prediccion_split_test, "submission_JRIP.csv")
 
 # CV con Ripper
 cv_JRip = evaluate_Weka_classifier(model.Ripper,numFolds=10)
