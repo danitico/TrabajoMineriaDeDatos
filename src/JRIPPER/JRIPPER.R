@@ -1,5 +1,5 @@
 source("src/utils/functions.R")
-source("preprocess.R")
+source("src/utils/preprocess.R")
 
 library(AUC)
 #options(java.home="C:\\Program Files (x86)\\Java\\jre1.8.0_291")
