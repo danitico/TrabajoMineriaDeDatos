@@ -1,20 +1,8 @@
-library(tidyverse)
+source("src/utils/functions.R")
 library(Amelia)
 library(naniar)
 
-
-feature <- read_csv("src/data/drivendata/training_set_features.csv")
-labels <- read_csv("src/data/drivendata/training_set_labels.csv")
-
-# Merging dataframes
-df <- merge(
-  feature,
-  labels,
-  by = "respondent_id"
-)
-
-# Deleting id variable
-df$respondent_id <- NULL
+df <- read_dataset("src/data/drivendata/train.csv")
 
 # Ver cuantas columnas hay con missing values
 columnsWithMissingValues <- sum(
@@ -41,8 +29,6 @@ df <- df %>% mutate(
 ) %>% mutate(
   missingCount = NULL
 )
-
-# df %>% write_csv(., "src/train.csv")
 
 
 # Aquellos que no tengan empleo, tendrán una categoría diferente en employment occupation e industry

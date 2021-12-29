@@ -1,10 +1,9 @@
-library(tidyverse)
+source("src/utils/functions.R")
 library(Amelia)
 library(naniar)
 
 
-features_test <- read_csv("src/data/drivendata/test_set_features.csv")
-
+features_test <- read_dataset("src/data/drivendata/test.csv")
 
 
 # Aquellos que no tengan empleo, tendrán una categoría diferente en employment occupation e industry

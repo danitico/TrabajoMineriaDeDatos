@@ -1,6 +1,4 @@
-require(magrittr)
-
-
+library(tidyverse)
 
 ### COLLAPSING LABELS
 
@@ -23,7 +21,6 @@ collapse_labels = function(dataframe, col_index_1, col_index_2) {
 }
 
 
-
 ### SPLITTING LABELS
 
 split_target = function(probs_dataframe) {
@@ -37,4 +34,52 @@ split_target = function(probs_dataframe) {
     
   colnames(new_dataframe) = c("respondent_id", "h1n1_vaccine", "seasonal_vaccine")
   return(new_dataframe)
+}
+
+
+get_unified_training_dataset <- function () {
+  feature <- read_csv("src/data/drivendata/training_set_features.csv")
+  labels <- read_csv("src/data/drivendata/training_set_labels.csv")
+  
+  # Merging dataframes
+  df <- merge(
+    feature,
+    labels,
+    by = "respondent_id"
+  )
+
+  # Deleting id variable
+  df$respondent_id <- NULL
+  
+  df %>% write_csv("src/data/drivendata/train.csv")
+}
+
+get_test_dataset <- function () {
+  df <- read_csv("src/data/drivendata/test_set_features.csv")
+  
+  df$respondent_id <- NULL
+  
+  df %>% write_csv("src/data/drivendata/test.csv")
+}
+
+read_dataset <- function(file) {
+  df <- read_csv(file)
+  
+  df <- df %>% mutate(
+    across(
+      everything(),
+      ~ factor(.x)
+    )
+  )
+  
+  df
+}
+
+get_submission_dataframe <- function(h1n1_vaccine_probs, seasonal_vaccine_probs) {
+  submission <- read_csv("src/data/drivendata/submission_format.csv")
+  
+  submission$h1n1_vaccine <- h1n1_vaccine_probs
+  submission$seasonal_vaccine <- seasonal_vaccine_probs
+  
+  submission
 }
