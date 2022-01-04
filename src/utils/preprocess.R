@@ -194,24 +194,3 @@ no_income_and_home <- function(df) {
 
 df <- no_income_and_home(df)
 df %>% write_csv("src/data/train_imputed.csv")
-
-### TODO: DE AQUÍ EN ADELANTE NO SE USA
-
-# En el caso de children under 6 months, se entiende que si hay valor perdido, se trata 0
-# Puede ser que el encuestador haya visto que sea una persona muy joven y por lo tanto, no tenga hijos
-
-meow <- df %>% filter(is.na(child_under_6_months))
-
-df %>% filter(is.na(employment_occupation)) %>% summarise(count=n())
-df %>% filter(is.na(employment_industry)) %>% summarise(count=n())
-df %>% filter(is.na(income_poverty)) %>% summarise(count=n())
-df %>% filter(is.na(doctor_recc_seasonal)) %>% summarise(count=n())
-
-
-
-
-df %>% filter(health_insurance == 0 & is.na(doctor_recc_h1n1)) %>% summarise(count=n())
-df %>% filter(health_insurance == 0 & is.na(doctor_recc_seasonal)) %>% summarise(count=n())
-
-
-
