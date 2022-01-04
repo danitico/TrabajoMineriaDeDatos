@@ -11,12 +11,11 @@ collapse_labels <- function(dataframe, col_index_1, col_index_2) {
   }
   
   new_dataframe <- dataframe[,-c(col_index_1, col_index_2)] %>% as.data.frame()
-  colnames(new_dataframe) <- colnames(dataframe)[-c(col_index_1, col_index_2)]
   
   new_dataframe$target <- collapse_two_binaries(
-    dataframe[,col_index_1],
-    dataframe[,col_index_2]
-  )
+    dataframe[[colnames(dataframe)[col_index_1]]],
+    dataframe[[colnames(dataframe)[col_index_2]]]
+  ) %>% as.factor()
   return(new_dataframe)
 }
 
@@ -72,16 +71,34 @@ get_test_dataset <- function () {
 ### LECTURA DEL DATASET CON TODAS LAS COLUMNAS COMO FACTORES
 
 read_dataset <- function(file) {
-  df <- read_csv(file)
   
-  df <- df %>% mutate(
-    across(
-      everything(),
-      ~ factor(.x)
-    )
-  )
-  
-  df
+  read_csv(file) %>%
+    mutate(
+      across(
+        everything(),
+        ~ factor(.x)
+        )
+      ) %>%
+    mutate(
+      across(
+        c(
+          h1n1_concern,
+          h1n1_knowledge,
+          opinion_h1n1_vacc_effective, 
+          opinion_h1n1_risk,
+          opinion_h1n1_sick_from_vacc,
+          opinion_seas_vacc_effective,
+          opinion_seas_risk,
+          opinion_seas_sick_from_vacc,
+          age_group,
+          education,
+          income_poverty,
+          household_adults,
+          household_children
+          ),
+        ~ as.ordered(.x)
+        )
+      )
 }
 
 
