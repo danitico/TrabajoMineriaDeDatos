@@ -1,4 +1,5 @@
 library(tidyverse)
+library(AUC)
 
 
 
@@ -33,7 +34,19 @@ split_target <- function(probs_dataframe) {
     )) %>% t()
     
   colnames(new_dataframe) = c("respondent_id", "h1n1_vaccine", "seasonal_vaccine")
-  return(new_dataframe)
+  return(as.data.frame(new_dataframe))
+}
+
+
+
+### PUNTUACIÓN SEGÚN LA COMPETICIÓN
+
+get_score <- function(predictions_df, h1n1_labels, seasonal_labels) {
+  # Se asume que predictions_df tiene el formato que se requiere para la entrega.
+  mean(
+    auc(roc(predictions_df$h1n1_vaccine, as.factor(h1n1_labels))),
+    auc(roc(predictions_df$seasonal_vaccine, as.factor(seasonal_labels)))
+  )
 }
 
 

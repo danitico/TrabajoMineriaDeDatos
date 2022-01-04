@@ -186,7 +186,7 @@ no_income_and_home <- function(df) {
     is.na(rent_or_own) & is.na(income_poverty)
   ) %>% select(rowname) %>% unlist(.) %>% as.numeric()
 
-  df[indexes1, "rent_or_own"] <- "none"
+  df[indexes1, "rent_or_own"] <- "Neither"
   df[indexes1, "income_poverty"] <- "Below Poverty"
 
   df
