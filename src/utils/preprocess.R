@@ -24,7 +24,7 @@ columnsWithMissingValues <- sum(
 
 # Quitar aquellas filas que tengan mas de columnsWithMissingValues/2 missing values
 
-drop_too_empty_columns <- function(dataframe) {
+drop_too_empty_rows <- function(dataframe) {
   dataframe %>% mutate(
     missingCount = apply(
       df,
@@ -38,7 +38,7 @@ drop_too_empty_columns <- function(dataframe) {
   )
 }
 
-df <- drop_too_empty_columns(df)
+df <- drop_too_empty_rows(df)
 
 
 
@@ -141,6 +141,59 @@ input_unemployed_with_common_na <- function(dataframe) {
 df <- input_unemployed_with_common_na(df)
 
 
+# En el caso de children under6 months, se entiende que si hay valor perdido, se trata 0
+# Puede ser que el encuestador haya visto que sea una persona muy joven y por lo tanto, no tenga hijos
+# Entendemos que aquellos NA en marital status se puede deber a otra situacion (viudo, divorciado)
+# En este punto, en donde hay un NA en education significa que no ha recibido educación (en eeuu hay una tasa importante de analfabetismo)
+# Respecto a que haya NA en health_worker, se entiende que el encuestador haya visto a lo largo
+# de la encuesta que trabaje en otro sector (solo trabajan 8 en ese grupo) y que los demas
+# sean jubilados o estudiantes
+
+misc_changes <- function(df) {
+  df %>% mutate(
+    child_under_6_months=ifelse(
+      is.na(child_under_6_months),
+      0,
+      child_under_6_months
+    ),
+    marital_status=ifelse(
+      is.na(marital_status),
+      "other",
+      marital_status
+    ),
+    education=ifelse(
+      is.na(education),
+      "other",
+      education
+    ),
+    health_worker=ifelse(
+      is.na(health_worker),
+      0,
+      health_worker
+    )
+  )
+}
+
+df <-  misc_changes(df)
+
+# Aquellos que tengan NA en rent_or_own y income_poverty
+# se puede deber a jovenes que viven con sus padres (64 entre 18 y 34)
+# jubilados que vivan en un asilo y que ya no tengan income como tal (189 que tienen mas de 65)
+# gente sin hogar, o gente mayor que siga viviendo con sus padres
+
+no_income_and_home <- function(df) {
+  indexes1 <- df %>% rownames_to_column() %>% filter(
+    is.na(rent_or_own) & is.na(income_poverty)
+  ) %>% select(rowname) %>% unlist(.) %>% as.numeric()
+
+  df[indexes1, "rent_or_own"] <- "none"
+  df[indexes1, "income_poverty"] <- "Below Poverty"
+
+  df
+}
+
+df <- no_income_and_home(df)
+df %>% write_csv("src/data/train_imputed.csv")
 
 ### TODO: DE AQUÍ EN ADELANTE NO SE USA
 
