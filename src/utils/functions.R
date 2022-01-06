@@ -22,7 +22,7 @@ collapse_labels <- function(dataframe, col_index_1, col_index_2) {
 ### SEPARACIÓN DE PROBABILIDADES
 
 split_target <- function(probs_dataframe) {
-  # Se asume que probs_dataframe tiene una fila por instancia y es de la forma (id, prob(0,0), prob(0,1), prob(1,0), prob(1,1)).
+  # Se asume que probs_dataframe tiene una fila por instancia y es de la forma (id, prob(0,0), prob(0,1), prob(1,0), prob(1,1))
   
   new_dataframe <- apply(probs_dataframe, 1, function(row) c(
       row[1], # id
@@ -39,7 +39,7 @@ split_target <- function(probs_dataframe) {
 ### PUNTUACIÓN SEGÚN LA COMPETICIÓN
 
 get_score <- function(predictions_df, h1n1_labels, seasonal_labels) {
-  # Se asume que predictions_df tiene el formato que se requiere para la entrega.
+  # Se asume que predictions_df tiene el formato que se requiere para la entrega
   mean(
     auc(roc(predictions_df$h1n1_vaccine, as.factor(h1n1_labels))),
     auc(roc(predictions_df$seasonal_vaccine, as.factor(seasonal_labels)))

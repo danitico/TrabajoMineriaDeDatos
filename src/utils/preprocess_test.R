@@ -1,7 +1,5 @@
 source("src/utils/functions.R")
 source("src/utils/preprocess.R")
-library(Amelia)
-library(naniar)
 
 features_test <- read_dataset("src/data/drivendata/test.csv") %>% 
   input_unemployed_occupation_and_industry() %>% 
