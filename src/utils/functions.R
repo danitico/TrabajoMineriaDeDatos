@@ -7,15 +7,12 @@ library(AUC)
 
 collapse_labels <- function(dataframe, col_index_1, col_index_2) {
   
-  collapse_two_binaries <- function(x, y) {
-    paste(x,y, sep="")
-  }
+  new_dataframe <- dataframe[,-c(col_index_1, col_index_2)]
   
-  new_dataframe <- dataframe[,-c(col_index_1, col_index_2)] %>% as.data.frame()
-  
-  new_dataframe$target <- collapse_two_binaries(
+  new_dataframe$target <- paste(
     dataframe[[colnames(dataframe)[col_index_1]]],
-    dataframe[[colnames(dataframe)[col_index_2]]]
+    dataframe[[colnames(dataframe)[col_index_2]]],
+    sep=""
   ) %>% as.factor()
   return(new_dataframe)
 }
