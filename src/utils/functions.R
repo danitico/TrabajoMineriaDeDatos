@@ -77,6 +77,15 @@ get_test_dataset <- function () {
 }
 
 
+add_real_respondent_id <- function(dataframe) {
+  respondent_id <- 26707:53414
+  cbind(
+    respondent_id,
+    dataframe
+  ) %>% as.data.frame()
+}
+
+
 
 ### LECTURA DEL DATASET CON TODAS LAS COLUMNAS COMO FACTORES
 

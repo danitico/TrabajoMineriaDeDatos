@@ -43,17 +43,12 @@ get_hamming_distance <- function(is_generalised) {
 
 gower_distance <- function(x, y) {
   
-  component_distance <- function(column) {
-    x1 <- column[1]
-    x2 <- column[2]
-    as.integer(x1 == x2)
-  }
+  component_distance <- function(x1, x2) as.integer(x1 == x2)
   
-  numerator <- apply(
-    rbind(x, y),
-    2,
-    component_distance
+  numerator <- sapply(
+    1:length(ncol(x)),
+    function(i) component_distance(x[[i]], y[[i]])
   )
   
-  sum(numerator, na.rm = T) / sum(is.na(numerator))
+  1 - sum(numerator, na.rm = T) / sum(is.na(numerator))
 }
