@@ -141,6 +141,8 @@ input_unemployed_with_common_na <- function(dataframe) {
 df <- input_unemployed_with_common_na(df)
 
 
+
+### 2.5.
 # En el caso de children under6 months, se entiende que si hay valor perdido, se trata 0
 # Puede ser que el encuestador haya visto que sea una persona muy joven y por lo tanto, no tenga hijos
 # Entendemos que aquellos NA en marital status se puede deber a otra situacion (viudo, divorciado)
@@ -176,6 +178,9 @@ misc_changes <- function(df) {
 
 df <-  misc_changes(df)
 
+
+
+### 2.6.
 # Aquellos que tengan NA en rent_or_own y income_poverty
 # se puede deber a jovenes que viven con sus padres (64 entre 18 y 34)
 # jubilados que vivan en un asilo y que ya no tengan income como tal (189 que tienen mas de 65)

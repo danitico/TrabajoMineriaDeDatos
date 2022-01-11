@@ -241,3 +241,25 @@ write_csv(
   ),
   "src/knn/results/best_10_preprocessed_30_k_7_jaccard_uniform_separated.csv"
 )
+
+
+
+### CLASIFICACIÓN ENSEMBLE
+
+# Se van a usar como clasificadores débiles los clasificadores que han obtenido puntuaciones por encima de 0.7
+# Las ponderaciones serán las proporcionales a la puntuación que han obtenido en Driven Data
+
+bagging_ensemble_classifier(
+  list(
+    read_csv(
+      "src/knn/results/best_10_preprocessed_50_k_7_jaccard_uniform.csv", 
+      col_types = cols(respondent_id = col_integer())
+      ),
+    read_csv(
+      "src/knn/results/best_10_preprocessed_30_k_7_jaccard_uniform_separated.csv", 
+      col_types = cols(respondent_id = col_integer())
+      )
+    ),
+  c(0.7653, 0.7175)
+) %>%
+  write_csv("src/knn/results/bagging.csv")
