@@ -35,7 +35,7 @@ get_probs_weighted <- function(v) {
 
 predict_class_for_given <- function(x0, train_features, train_labels, n_test, k, dist_func, get_probs_func, print_progress) {
   if (print_progress) {
-    print(paste("Predicting instance #", x0[1], " of ", n_test, "."))
+    print(paste("Predicting instance #", x0[1], " of ", n_test, ".", sep=""))
   }
   x0 <- x0[-1]
   distances <- sapply(1:nrow(train_features), function(i) {
@@ -60,6 +60,7 @@ knn_classifier <- function(train_features, train_labels, test_features, k=1, dis
 
 
 
+# Para hacer pruebas
 add_experimental_respondent_id <- function(dataframe) {
   respondent_id <- 1:nrow(dataframe)
   cbind(
@@ -70,9 +71,10 @@ add_experimental_respondent_id <- function(dataframe) {
 
 
 
+# Para la clasificación por separado
 predict_class_for_given_bin <- function(x0, train_features, train_labels, n_test, k, dist_func, print_progress) {
   if (print_progress) {
-    print(paste("Predicting instance #", x0[1], " of ", n_test, "."))
+    print(paste("Predicting instance #", x0[1], " of ", n_test, ".", sep=""))
   }
   x0 <- x0[-1]
   
@@ -90,6 +92,7 @@ predict_class_for_given_bin <- function(x0, train_features, train_labels, n_test
 
 
 
+# Para la clasificación por separado.
 knn_classifier_bin <- function(train_features, train_labels, test_features, k=1, dist_func, print_progress=F) {
   test_features <- cbind(1:nrow(test_features), test_features)
   predictions <- sapply(1:nrow(test_features), function(i) {
