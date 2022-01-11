@@ -132,3 +132,39 @@ get_submission_dataframe <- function(h1n1_vaccine_probs, seasonal_vaccine_probs)
   
   submission
 }
+
+
+
+### ENSEMBLE
+
+bagging_ensemble_classifier <- function(submission_df_list, ponderation_vector) {
+  
+  denominator <- sum(ponderation_vector)
+  number_of_instances <- 26708
+  
+  # Para aplicar bagging a la columna h1n1 o a la de seasonal
+  bagging_column <- function(column_number) {
+    
+    # Dado un row_number, vector de cinco posiciones que tiene en la posición
+    # i-ésima la probabilidad que el i-ésimo clasificador ha calculado de que
+    # la variable en column_number valga 1
+    probs_of_row <- function(row_number) {
+      sapply(
+        submission_df_list,
+        function(classification_df) classification_df[row_number, column_number]
+      ) %>% unlist()
+    }
+    
+    sapply(
+      1:number_of_instances,
+      function(row_number) sum(ponderation_vector*probs_of_row(row_number)) / denominator
+    )
+  }
+  
+  data.frame(
+    respondent_id = 26707:53414,
+    h1n1_vaccine = bagging_column(2),
+    seasonal_vaccine = bagging_column(3)
+  )
+  
+}
