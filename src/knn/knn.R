@@ -131,7 +131,7 @@ experimental_predictions_df <- knn_classifier(
   experimental_df[, "target"],
   experimental_df_test,
   k=7,
-  get_hamming_distance(T),
+  jaccard_distance,
   get_probs_uniform,
   T
 )
@@ -159,7 +159,7 @@ predictions_df <- knn_classifier(
   df_collapsed[classes_representants, "target"],
   df_test,
   k=7,
-  gower_distance,
+  jaccard_distance,
   get_probs_uniform,
   T
 )
@@ -170,67 +170,66 @@ submission_df = predictions_df %>%
 
 write_csv(
   submission_df,
-  "src/knn/results/best_10_preprocessed_50_k_7_gower_uniform.csv"
+  "src/knn/results/best_10_preprocessed_50_k_7_jaccard_uniform.csv"
 )
 
 
 
 ### CLASIFICACIÓN POR SEPARADO
 
-experimental_df_separated <- df[classes_representants, best_attributes]
+best_attributes_h1n1 <- cut_attrs(information_gain(h1n1_vaccine ~ ., select(df, -seasonal_vaccine)), k=10)
+best_attributes_seasonal <- cut_attrs(information_gain(seasonal_vaccine ~ ., select(df, -h1n1_vaccine)), k=10)
+classes_representants_30 <- classes_representants_func(30)
 
-n <- nrow(experimental_df_separated)
+df_separated_train_h1n1 <- df[classes_representants_30, best_attributes_h1n1]
+df_separated_train_seasonal <- df[classes_representants_30, best_attributes_seasonal]
+
+n <- length(classes_representants_30)
 sample_size <- floor(training_proportion * n)
 train_positions <- sample(1:n, size=sample_size)
 
-experimental_df_separated_train <- experimental_df_separated[train_positions,]
-experimental_df_separated_test <- experimental_df_separated[-train_positions,]
-
 experimental_predictions_df_h1n1 <- knn_classifier_bin(
-  experimental_df_separated_train,
+  df_separated_train_h1n1[train_positions,],
   as.data.frame(h1n1_label[train_positions]),
-  experimental_df_separated_test,
+  df_separated_train_h1n1[-train_positions,],
   k=7,
-  gower_distance,
+  jaccard_distance,
   T
 )
 
 experimental_predictions_df_seasonal <- knn_classifier_bin(
-  experimental_df_separated_train,
-  as.data.frame(seasonal_label[train_positions]),
-  experimental_df_separated_test,
+  df_separated_train_seasonal[train_positions,],
+  as.data.frame(h1n1_label[train_positions]),
+  df_separated_train_seasonal[-train_positions,],
   k=7,
-  gower_distance,
+  jaccard_distance,
   T
 )
 
 mean(
-  auc(roc(predictions_df_h1n1, as.factor(h1n1_label[df_sample][-train_positions]))),
-  auc(roc(predictions_df_seasonal, as.factor(seasonal_label[df_sample][-train_positions])))
+  auc(roc(experimental_predictions_df_h1n1, as.factor(h1n1_label[classes_representants][-train_positions]))),
+  auc(roc(experimental_predictions_df_seasonal, as.factor(seasonal_label[classes_representants][-train_positions])))
 )
 
 
 
 ### CLASIFICACIÓN CON EL CONJUNTO DE TEST DE LA ENTREGA POR SEPARADO
 
-df_train <- df_collapsed[classes_representants, best_attributes]
-df_test <- read_dataset("src/data/test_imputed.csv")[, best_attributes]
-
 predictions_df_h1n1 <- knn_classifier_bin(
-  df_train,
-  as.data.frame(df$h1n1_vaccine[classes_representants]),
-  df_test,
+  df_separated_train_h1n1,
+  as.data.frame(df$h1n1_vaccine[classes_representants_30]),
+  read_dataset("src/data/test_imputed.csv")[, best_attributes_h1n1],
   k=7,
-  gower_distance,
+  jaccard_distance,
   T
 )
 
 predictions_df_seasonal <- knn_classifier_bin(
-  df_train,
-  as.data.frame(df$seasonal_vaccine[classes_representants]),
-  df_test,
+  df_separated_train_seasonal,
+  as.data.frame(df$seasonal_vaccine[classes_representants_30]),
+  read_dataset("src/data/test_imputed.csv")[, best_attributes_seasonal],
   k=7,
-  gower_distance,
+  jaccard_distance,
   T
 )
 
@@ -240,5 +239,5 @@ write_csv(
     h1n1_vaccine = predictions_df_h1n1,
     seasonal_vaccine = predictions_df_seasonal
   ),
-  "src/knn/results/best_10_preprocessed_50_k_7_gower_uniform_separated.csv"
+  "src/knn/results/best_10_preprocessed_30_k_7_jaccard_uniform_separated.csv"
 )

@@ -52,3 +52,28 @@ gower_distance <- function(x, y) {
   
   1 - sum(numerator, na.rm = T) / sum(is.na(numerator))
 }
+
+
+
+jaccard_distance <- function(x,y) {
+  
+  n <- ncol(x)
+  
+  index_row <- function(row) sapply(
+    1:n,
+    function(i) paste(i,as.integer(row[[i]]),sep="_")
+  )
+  
+  x_indexed <- index_row(x)
+  y_indexed <- index_row(y)
+  
+  intersection_cardinal <- sapply(
+    1:n,
+    function(i) x_indexed[i] == y_indexed[i]
+  ) %>% sum()
+  union_cardinal <- length(x_indexed) + length(y_indexed) - intersection_cardinal
+  
+  # El índice de Jaccard mide la similaridad entre dos conjuntos. Aquí se calcula
+  # uno menos el índice, que da la distancia (a mayor similaridad, menor distancia).
+  1 - intersection_cardinal / union_cardinal
+}
