@@ -18,9 +18,10 @@ library(naniar)
 #df <- read_dataset("src/data/drivendata/train.csv")
 
 
-# imp=mice(df, maxit=3, meth='pmm', seed=1)
-# 
-# df=complete(imp)
+imp=mice(df, maxit=3, meth='pmm', seed=1)
+
+df=complete(imp)
+
 
 df_copy=df
 df_copy$h1n1_vaccine=as.numeric(levels(df$h1n1_vaccine))[df$h1n1_vaccine]
@@ -61,11 +62,11 @@ prediccion=prediccion %>% mutate(id=as.numeric(rownames(prediccion))) %>% reloca
 prediccion_split=as.data.frame(split_target(prediccion))
 
 
-ROC_h1n1=roc(prediccion_split[,2],df[,36][[1]])
+ROC_h1n1=roc(prediccion_split[,2],df[,36])
 acierto_h1n1=auc(ROC_h1n1)
 acierto_h1n1
 
-ROC_seasonal=roc(prediccion_split[,3], df[,37][[1]])
+ROC_seasonal=roc(prediccion_split[,3], df[,37])
 acierto_seasonal=auc(ROC_seasonal)
 acierto_seasonal
 
@@ -73,10 +74,9 @@ training_multi=mean(c(acierto_h1n1, acierto_seasonal))
 
 ####PARA ENVIAR A DRIVENDATA######################################################################################
 
-# features_test=read_dataset("src/data/drivendata/test.csv")
 
-# imp=mice(features_test, maxit=3, meth='pmm', seed=1)
-# features_test=complete(imp)
+imp=mice(features_test, maxit=3, meth='pmm', seed=1)
+features_test=complete(imp)
 
 
 
@@ -123,11 +123,11 @@ prediccion.seasonal=prediccion.seasonal %>% mutate(id=as.numeric(rownames(predic
 
 
 
-ROC_h1n1=roc(prediccion.h1n1[,3],df[,36][[1]])
+ROC_h1n1=roc(prediccion.h1n1[,3],df[,36])
 acierto_h1n1=auc(ROC_h1n1)
 acierto_h1n1
 
-ROC_seasonal=roc(prediccion.seasonal[,3], df[,37][[1]])
+ROC_seasonal=roc(prediccion.seasonal[,3], df[,37])
 acierto_seasonal=auc(ROC_seasonal)
 acierto_seasonal
 
@@ -149,23 +149,49 @@ prediccion.seasonal.test=prediccion.seasonal.test %>% mutate(id=as.numeric(rowna
 
 submission_dataframe=get_submission_dataframe(prediccion.h1n1.test[,3], prediccion.seasonal.test[,3])
 
-write_csv(submission_dataframe, "submission_JRIP.csv")      
+write_csv(submission_dataframe, "submission_JRIP_multi.csv")      
 
 
 training_multi
 training_separado
 
-#### Con Bagging
 
-train_bagging <- function (classifier, number_classifiers, x, y) {
+###############################################################################################################################
+#### Con Bagging###############################################################################################################
+###############################################################################################################################
+
+
+
+train_bagging_JRip_h1n1 <- function (number_classifiers, data) {
   lapply(
     1:number_classifiers,
     function (i) {
-      samples <- sample(1:dim(x)[1], replace = T, size = dim(x)[1])
-      classifier(x[samples,], y[samples], Weka_control())
+      samples <- sample(1:dim(data)[1], replace = T, size = dim(data)[1])
+      JRip(h1n1_vaccine~., data, subset=samples,control = Weka_control(N=5, O=5, F=5))
     }
   )
 }
+
+train_bagging_JRip_seasonal <- function (number_classifiers, data) {
+  lapply(
+    1:number_classifiers,
+    function (i) {
+      samples <- sample(1:dim(data)[1], replace = T, size = dim(data)[1])
+      JRip(seasonal_vaccine~., data, subset=samples,control = Weka_control(N=5, O=5, F=5))
+    }
+  )
+}
+
+train_bagging_JRip_collapsed <- function (number_classifiers, data) {
+  lapply(
+    1:number_classifiers,
+    function (i) {
+      samples <- sample(1:dim(data)[1], replace = T, size = dim(data)[1])
+      JRip(target~., data, subset=samples,control = Weka_control(N=5, O=5, F=5))
+    }
+  )
+}
+
 
 predict_bagging <- function(models, test) {
   apply(
@@ -174,44 +200,91 @@ predict_bagging <- function(models, test) {
         lapply(
           1:length(models),
           function(i) {
-            predict(models[[i]], newdata = test, type="raw")
+            predict(models[[i]], newdata = test, type="probability")
           }
         )
       ),
       dim = c(dim(test)[1], 2, length(models))
     ),
-    c(1, 2),
-    mean
+   c(1, 2),
+   mean
+ )
+}
+
+predict_bagging_collapsed <- function(models, test) {
+  apply(
+    array(
+      unlist(
+        lapply(
+          1:length(models),
+          function(i) {
+            predict(models[[i]], newdata = test, type="probability")
+          }
+        )
+      ),
+      dim = c(dim(test)[1], 4, length(models))
+    ),
   )
 }
 
-
-models_h1n1 <- train_bagging(
-  naiveBayes,
+models_h1n1 <- train_bagging_JRip_h1n1(
   3,
-  best_feature_h1n1 %>% select(-h1n1_vaccine),
-  best_feature_h1n1$h1n1_vaccine
+  df_copy.h1n1
 )
 
+
+
+models_seasonal <- train_bagging_JRip_seasonal(
+  3,
+  df_copy.seasonal
+)
+
+
+
+###Training#############################################################################################################
 preds_h1n1 <- predict_bagging(
   models_h1n1,
-  dftest %>% select(
-    behavioral_antiviral_meds,
-    doctor_recc_h1n1,
-    health_insurance,
-    opinion_h1n1_vacc_effective,
-    opinion_h1n1_risk,
-    age_group,
-    race,
-    hhs_geo_region,
-    census_msa,
-    household_adults,
-    household_children,
-    employment_industry
-  )
+  df_copy
 )
 
-train_bagging
+preds_seasonal <- predict_bagging(
+  models_seasonal,
+  df_copy
+)
+
+ROC_h1n1=roc(preds_h1n1[,2],df[,36])
+acierto_h1n1=auc(ROC_h1n1)
+acierto_h1n1
+
+ROC_seasonal=roc(preds_seasonal[,2], df[,37])
+acierto_seasonal=auc(ROC_seasonal)
+acierto_seasonal
+
+training_bagging=mean(c(acierto_h1n1, acierto_seasonal))
+
+###Test#############################################################################################################
 
 
+preds_h1n1_test <- predict_bagging(
+  models_h1n1,
+  features_test
+)
 
+preds_seasonal_test <- predict_bagging(
+  models_seasonal,
+  features_test
+)
+
+submission <- get_submission_dataframe(
+  preds_h1n1_test[, 2],
+  preds_seasonal_test[, 2]
+)
+
+
+write_csv(submission, "submission_JRIP_bagging.csv")   
+
+
+models_h1n1 <- train_bagging_JRip_h1n1(
+  3,
+  df_copy.h1n1
+)
