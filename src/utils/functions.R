@@ -1,5 +1,6 @@
 library(tidyverse)
 library(AUC)
+library(ggplot2)
 
 
 
@@ -167,4 +168,26 @@ bagging_ensemble_classifier <- function(submission_df_list, ponderation_vector) 
     seasonal_vaccine = bagging_column(3)
   )
   
+}
+
+
+
+### REPRESENTACIÓN DE LA EVOLUCIÓN DE LOS RESULTADOS
+
+score_progression_plot <- function(scores) {
+  df = data.frame(
+    i = 1:length(scores),
+    auc = scores
+  )
+  
+  ggplot(
+    data = df,
+    aes(x=i, y=auc, label=as.character(auc))
+  ) +
+    geom_line(col="blue") +
+    geom_point(col="blue", size=3) +
+    geom_text(nudge_y = 0.01, fontface="bold") +
+    scale_x_continuous(breaks = df$i) +
+    xlab("") +
+    ylab("AUC")
 }

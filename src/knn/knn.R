@@ -263,3 +263,11 @@ bagging_ensemble_classifier(
   c(0.7653, 0.7175)
 ) %>%
   write_csv("src/knn/results/bagging.csv")
+
+
+
+### REPRESENTACIÓN DE LA EVOLUCIÓN DE LOS RESULTADOS
+
+score_progression_plot(c(
+  0.5126, 0.5212, 0.5307, 0.4979, 0.5321, 0.5312, 0.4393, 0.4393, 0.4393, 0.4389, 0.7653, 0.7175, 0.7828
+))
