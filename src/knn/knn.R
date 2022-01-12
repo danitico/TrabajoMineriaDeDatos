@@ -249,7 +249,7 @@ write_csv(
 # Se van a usar como clasificadores débiles los clasificadores que han obtenido puntuaciones por encima de 0.7
 # Las ponderaciones serán las proporcionales a la puntuación que han obtenido en Driven Data
 
-bagging_ensemble_classifier(
+stacking_ensemble_classifier(
   list(
     read_csv(
       "src/knn/results/best_10_preprocessed_50_k_7_jaccard_uniform.csv", 
@@ -262,7 +262,7 @@ bagging_ensemble_classifier(
     ),
   c(0.7653, 0.7175)
 ) %>%
-  write_csv("src/knn/results/bagging.csv")
+  write_csv("src/knn/results/stacking.csv")
 
 
 
