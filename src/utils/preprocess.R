@@ -115,11 +115,13 @@ df <- input_vaccine_reccomendation(df)
 
 # df %>% gg_miss_upset(.)
 
-# df %>% missmap(.)
-
-
 ### 2.4.
 # Entender como desempleados a aquellos encuestados en los que los valores perdidos sigan un cierto patron
+# En este caso, quien no trabaja, no tiene por lo tanto una industria y ocupacion
+# por lo tanto se pone a unemployed y luego, sobre rent_or_own, se puede tratar de vagabundos
+# o de jovenes que viven en la casa de sus padres, por lo que ni está alquilado ni tiene una casa
+# Sobre el income_poverty, al deducir que pueden ser este dos tipos de personas, lo identificamos
+# como Below Poverty
 
 input_unemployed_with_common_na <- function(dataframe) {
 
